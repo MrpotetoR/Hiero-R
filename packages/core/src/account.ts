@@ -59,8 +59,9 @@ export class AccountService {
       .execute(this.client);
 
     const tokens = new Map<string, number>();
-    if (response.tokens) {
-      for (const [tokenId, amount] of response.tokens._map) {
+    // TokenBalanceMap exposes _map as its only iteration API (no public iterator)
+    if (response.tokens && (response.tokens as any)._map) {
+      for (const [tokenId, amount] of (response.tokens as any)._map) {
         tokens.set(tokenId.toString(), Number(amount));
       }
     }

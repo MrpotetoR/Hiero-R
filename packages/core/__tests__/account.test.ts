@@ -58,7 +58,7 @@ vi.mock("@hashgraph/sdk", () => {
       addHbarTransfer: vi.fn().mockReturnThis(),
       execute: vi.fn().mockResolvedValue({
         getReceipt: vi.fn().mockResolvedValue({
-          status: { toString: () => "SUCCESS" },
+          status: "SUCCESS",
         }),
       }),
     })),
@@ -74,7 +74,7 @@ vi.mock("@hashgraph/sdk", () => {
       fromStringDer: vi.fn((k: string) => ({ toString: () => k })),
     },
     Status: {
-      Success: { toString: () => "SUCCESS" },
+      Success: "SUCCESS",
     },
   };
 });
@@ -115,6 +115,65 @@ describe("AccountService", () => {
       const newId = await service.createAccount();
 
       expect(newId).toBe("0.0.99999");
+    });
+
+    it("should create account with initial balance", async () => {
+      const { Hbar } = await import("@hashgraph/sdk");
+      const newId = await service.createAccount(new Hbar(10));
+
+      expect(newId).toBe("0.0.99999");
+    });
+
+    it("should throw when receipt has no accountId", async () => {
+      const { AccountCreateTransaction } = await import("@hashgraph/sdk");
+      vi.mocked(AccountCreateTransaction).mockImplementationOnce(() => ({
+        setKey: vi.fn().mockReturnThis(),
+        setInitialBalance: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue({
+          getReceipt: vi.fn().mockResolvedValue({ accountId: null }),
+        }),
+      }) as any);
+
+      await expect(service.createAccount()).rejects.toThrow(
+        "Account creation failed: no account ID in receipt"
+      );
+    });
+  });
+
+  describe("transferHbar", () => {
+    it("should transfer HBAR and return receipt", async () => {
+      const { Hbar } = await import("@hashgraph/sdk");
+      const receipt = await service.transferHbar("0.0.200", new Hbar(5));
+
+      expect(receipt).toBeDefined();
+      expect(receipt.status).toBe("SUCCESS");
+    });
+
+    it("should throw when client has no operator", async () => {
+      const noOpClient = { operatorAccountId: null } as any;
+      const noOpService = new AccountService(noOpClient);
+      const { Hbar } = await import("@hashgraph/sdk");
+
+      await expect(
+        noOpService.transferHbar("0.0.200", new Hbar(5))
+      ).rejects.toThrow("Client has no operator account configured");
+    });
+
+    it("should throw when transfer fails", async () => {
+      const { TransferTransaction } = await import("@hashgraph/sdk");
+      vi.mocked(TransferTransaction).mockImplementationOnce(() => ({
+        addHbarTransfer: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue({
+          getReceipt: vi.fn().mockResolvedValue({
+            status: { toString: () => "INSUFFICIENT_PAYER_BALANCE" },
+          }),
+        }),
+      }) as any);
+
+      const { Hbar } = await import("@hashgraph/sdk");
+      await expect(
+        service.transferHbar("0.0.200", new Hbar(999999))
+      ).rejects.toThrow("Transfer failed with status");
     });
   });
 });
