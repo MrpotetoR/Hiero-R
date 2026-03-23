@@ -16,7 +16,9 @@ Built for the [Hedera Hello Future Apex Hackathon 2026](https://hackathon.stacku
 - **`useMirrorQuery`** — Generic paginated Mirror Node REST API queries
 - **`useHieroClient`** — Direct access to the Hedera SDK Client
 - **`MirrorNodeClient`** — Fully typed REST client with automatic pagination
-- **Core services** — `AccountService`, `TokenService`, `NftService`
+- **Core services** — `AccountService`, `TokenService`, `NftService`, `FileService`, `SmartContractService`
+- **`ContractVerificationClient`** — Sourcify-compatible contract verification
+- **Network queries** — Supply, nodes, fees, and exchange rates via Mirror Node
 
 ## Quick Start
 
@@ -96,7 +98,10 @@ This library mirrors the modular architecture of [hiero-enterprise-java](https:/
 | `AccountService` | `AccountClient` | `getBalance`, `getInfo`, `createAccount`, `transferHbar` |
 | `TokenService` | `FungibleTokenClient` | `getInfo`, `createToken`, `associateToken` |
 | `NftService` | `NftClient` | `createCollection`, `mint`, `transfer` |
-| `MirrorNodeClient` | `MirrorNodeClient` + Repositories | `getAccount`, `getAccountTokens`, `getToken`, etc. |
+| `FileService` | `FileClient` | `createFile`, `getContents`, `getInfo`, `appendContents`, `updateContents`, `deleteFile` |
+| `SmartContractService` | `SmartContractClient` | `deploy`, `execute`, `call`, `getInfo`, `deleteContract` |
+| `ContractVerificationClient` | `ContractVerificationClient` | `checkVerification`, `verify` |
+| `MirrorNodeClient` | `MirrorNodeClient` + Repositories | `getAccount`, `getAccountTokens`, `getToken`, `getNetworkSupply`, `getNetworkNodes`, `getNetworkFees`, `getExchangeRate`, etc. |
 
 ### React Hooks
 
@@ -194,7 +199,7 @@ cd packages/sample-app && pnpm dev
 
 ```bash
 pnpm build       # Build all packages
-pnpm test        # Run all tests (51 tests)
+pnpm test        # Run all tests (64 tests)
 pnpm typecheck   # Type checking
 pnpm clean       # Clean build outputs
 ```

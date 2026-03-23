@@ -58,6 +58,23 @@ const mockNftService = {
   transfer: vi.fn(),
 };
 
+const mockFileService = {
+  createFile: vi.fn(),
+  getContents: vi.fn(),
+  getInfo: vi.fn(),
+  appendContents: vi.fn(),
+  updateContents: vi.fn(),
+  deleteFile: vi.fn(),
+};
+
+const mockContractService = {
+  deploy: vi.fn(),
+  execute: vi.fn(),
+  call: vi.fn(),
+  getInfo: vi.fn(),
+  deleteContract: vi.fn(),
+};
+
 const mockMirrorClient = {
   getAccount: vi.fn(),
   getAccountTokens: vi.fn(),
@@ -80,6 +97,8 @@ vi.mock("@i-coders/hiero-core", () => ({
   AccountService: vi.fn(() => mockAccountService),
   TokenService: vi.fn(() => mockTokenService),
   NftService: vi.fn(() => mockNftService),
+  FileService: vi.fn(() => mockFileService),
+  SmartContractService: vi.fn(() => mockContractService),
   MirrorNodeClient: vi.fn(() => mockMirrorClient),
 }));
 

@@ -95,3 +95,51 @@ export interface MirrorNodeResponse<T> {
   [key: string]: unknown;
   links?: { next: string | null };
 }
+
+// ──────────────────────────────────────────────
+// Network types (equivalent to NetworkRepository)
+// ──────────────────────────────────────────────
+
+/** Mirror Node network supply information */
+export interface MirrorNetworkSupply {
+  released_supply: string;
+  total_supply: string;
+  timestamp: string;
+}
+
+/** Mirror Node network node information */
+export interface MirrorNetworkNode {
+  node_id: number;
+  description: string;
+  node_account_id: string;
+  node_cert_hash: string;
+  service_endpoints: Array<{
+    ip_address_v4: string;
+    port: number;
+  }>;
+  timestamp: { from: string; to: string | null };
+}
+
+/** Mirror Node network fees */
+export interface MirrorNetworkFees {
+  fees: Array<{
+    gas: number;
+    transaction_type: string;
+  }>;
+  timestamp: string;
+}
+
+/** Mirror Node exchange rate */
+export interface MirrorExchangeRate {
+  current_rate: {
+    cent_equivalent: number;
+    hbar_equivalent: number;
+    expiration_time: number;
+  };
+  next_rate: {
+    cent_equivalent: number;
+    hbar_equivalent: number;
+    expiration_time: number;
+  };
+  timestamp: string;
+}

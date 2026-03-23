@@ -5,6 +5,10 @@ import type {
   MirrorNft,
   MirrorTransaction,
   MirrorTokenBalance,
+  MirrorNetworkSupply,
+  MirrorNetworkNode,
+  MirrorNetworkFees,
+  MirrorExchangeRate,
 } from "./types";
 
 /**
@@ -164,6 +168,53 @@ export class MirrorNodeClient {
       `/api/v1/tokens/${tokenId}/nfts${params}`,
       "nfts"
     );
+  }
+
+  // ──────────────────────────────────────────────
+  // Network queries (equivalent to NetworkRepository)
+  // ──────────────────────────────────────────────
+
+  /**
+   * Fetches network supply information (total HBAR supply).
+   *
+   * @returns Network supply data
+   */
+  async getNetworkSupply(): Promise<MirrorNetworkSupply> {
+    return this.fetch<MirrorNetworkSupply>("/api/v1/network/supply");
+  }
+
+  /**
+   * Fetches the list of network nodes.
+   *
+   * @param options - Query options (limit, order)
+   * @returns Paginated list of network nodes
+   */
+  async getNetworkNodes(
+    options?: MirrorQueryOptions
+  ): Promise<Paginated<MirrorNetworkNode>> {
+    const params = this.buildParams(options);
+    return this.fetchPaginated<MirrorNetworkNode>(
+      `/api/v1/network/nodes${params}`,
+      "nodes"
+    );
+  }
+
+  /**
+   * Fetches network fees information.
+   *
+   * @returns Network fees data
+   */
+  async getNetworkFees(): Promise<MirrorNetworkFees> {
+    return this.fetch<MirrorNetworkFees>("/api/v1/network/fees");
+  }
+
+  /**
+   * Fetches exchange rate information.
+   *
+   * @returns Network exchange rate data
+   */
+  async getExchangeRate(): Promise<MirrorExchangeRate> {
+    return this.fetch<MirrorExchangeRate>("/api/v1/network/exchangerate");
   }
 
   // ──────────────────────────────────────────────

@@ -6,6 +6,8 @@ import {
   AccountService,
   TokenService,
   NftService,
+  FileService,
+  SmartContractService,
   MirrorNodeClient,
 } from "@i-coders/hiero-core";
 import type { HieroConfig } from "@i-coders/hiero-core";
@@ -23,6 +25,10 @@ export interface HieroContextValue {
   tokenService: TokenService;
   /** NFT operations service */
   nftService: NftService;
+  /** File operations service */
+  fileService: FileService;
+  /** Smart contract operations service */
+  contractService: SmartContractService;
   /** Mirror Node REST API client */
   mirrorClient: MirrorNodeClient;
   /** The active configuration */
@@ -84,6 +90,8 @@ export function HieroProvider({ config, children }: HieroProviderProps) {
       accountService: new AccountService(client),
       tokenService: new TokenService(client),
       nftService: new NftService(client),
+      fileService: new FileService(client),
+      contractService: new SmartContractService(client),
       mirrorClient: new MirrorNodeClient(mirrorUrl),
       config: stableConfig,
     };

@@ -20,6 +20,20 @@ export type { TokenInfo, CreateTokenParams } from "./token";
 export { NftService } from "./nft";
 export type { CreateNftCollectionParams } from "./nft";
 
+export { FileService } from "./file";
+export type { HieroFileInfo, CreateFileParams } from "./file";
+
+export { SmartContractService } from "./contract";
+export type {
+  ContractInfo,
+  DeployContractParams,
+  ExecuteContractParams,
+  CallContractParams,
+} from "./contract";
+
+export { ContractVerificationClient } from "./verification";
+export type { VerificationResult } from "./verification";
+
 // Mirror Node client
 export { MirrorNodeClient } from "./mirror";
 export type { MirrorQueryOptions, MirrorClientOptions } from "./mirror";
@@ -33,4 +47,8 @@ export type {
   MirrorNft,
   MirrorTransaction,
   MirrorTokenBalance,
+  MirrorNetworkSupply,
+  MirrorNetworkNode,
+  MirrorNetworkFees,
+  MirrorExchangeRate,
 } from "./types";
