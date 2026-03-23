@@ -10,7 +10,7 @@
     "url": "https://github.com/MrpotetoR/Hiero-R.git"
   },
   "scripts": {
-    "build": "pnpm -r build",
+    "build": "pnpm --filter @i-coders/hiero-core build && pnpm --filter @i-coders/hiero-react build && pnpm --filter @i-coders/hiero-sample-app build",
     "test": "pnpm -r test",
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck",
