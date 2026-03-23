@@ -7,7 +7,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/i-coders-uttecam/hiero-enterprise-react.git"
+    "url": "https://github.com/MrpotetoR/Hiero-R.git"
   },
   "scripts": {
     "build": "pnpm -r build",

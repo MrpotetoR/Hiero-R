@@ -30,6 +30,9 @@ pnpm add @i-coders/hiero-core @i-coders/hiero-react @hashgraph/sdk
 
 ### 2. Wrap your app with HieroProvider
 
+> **Security note:** Never expose private keys in client-side code in production.
+> The example below is for **testnet/development only**. For production, use a backend signer or wallet integration.
+
 ```tsx
 import { HieroProvider } from "@i-coders/hiero-react";
 
@@ -99,12 +102,14 @@ This library mirrors the modular architecture of [hiero-enterprise-java](https:/
 
 | Hook | Description |
 |---|---|
-| `useBalance(accountId)` | Reactive HBAR + token balance query |
+| `useBalance(accountId, options?)` | Reactive HBAR + token balance query |
 | `useTransfer()` | HBAR transfer with `idle → pending → success/error` status |
-| `useTokenInfo(tokenId)` | Reactive token information query |
-| `useAccountInfo(accountId)` | Reactive account information query |
-| `useMirrorQuery(path, key)` | Generic paginated Mirror Node query |
+| `useTokenInfo(tokenId, options?)` | Reactive token information query |
+| `useAccountInfo(accountId, options?)` | Reactive account information query |
+| `useMirrorQuery(path, key, options?)` | Generic paginated Mirror Node query |
 | `useHieroClient()` | Direct SDK Client access |
+
+All data-fetching hooks support `{ enabled?: boolean }` to conditionally skip queries, and include automatic race condition prevention via cancellation.
 
 ## API Reference
 
@@ -141,7 +146,10 @@ Supports automatic pagination — call `fetchNextPage()` to append the next page
 ```ts
 import { MirrorNodeClient } from "@i-coders/hiero-core";
 
-const mirror = new MirrorNodeClient("https://testnet.mirrornode.hedera.com");
+const mirror = new MirrorNodeClient("https://testnet.mirrornode.hedera.com", {
+  timeout: 10_000,  // 10s request timeout (default)
+  retries: 2,       // retry failed requests with exponential backoff (default)
+});
 
 // Typed queries
 const account = await mirror.getAccount("0.0.100");
@@ -167,16 +175,26 @@ while (page) {
 ### Setup
 
 ```bash
-git clone https://github.com/i-coders-uttecam/hiero-enterprise-react.git
-cd hiero-enterprise-react
+git clone https://github.com/MrpotetoR/Hiero-R.git
+cd Hiero-R
 pnpm install
+```
+
+### Run the sample app
+
+```bash
+cp packages/sample-app/.env.example packages/sample-app/.env.local
+# Edit .env.local with your testnet credentials from portal.hedera.com
+pnpm build
+cd packages/sample-app && pnpm dev
+# Open http://localhost:3000
 ```
 
 ### Commands
 
 ```bash
 pnpm build       # Build all packages
-pnpm test        # Run all tests
+pnpm test        # Run all tests (51 tests)
 pnpm typecheck   # Type checking
 pnpm clean       # Clean build outputs
 ```
