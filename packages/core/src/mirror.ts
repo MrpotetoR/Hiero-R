@@ -43,12 +43,24 @@ export interface MirrorQueryOptions {
  * }
  * ```
  */
+/** Configuration options for MirrorNodeClient */
+export interface MirrorClientOptions {
+  /** Request timeout in milliseconds (default: 10000) */
+  timeout?: number;
+  /** Number of retry attempts on failure (default: 2) */
+  retries?: number;
+}
+
 export class MirrorNodeClient {
   private readonly baseUrl: string;
+  private readonly timeout: number;
+  private readonly retries: number;
 
-  constructor(baseUrl: string) {
+  constructor(baseUrl: string, options?: MirrorClientOptions) {
     // Remove trailing slash if present
     this.baseUrl = baseUrl.replace(/\/$/, "");
+    this.timeout = options?.timeout ?? 10_000;
+    this.retries = options?.retries ?? 2;
   }
 
   // ──────────────────────────────────────────────
@@ -187,18 +199,40 @@ export class MirrorNodeClient {
   // Internal helpers
   // ──────────────────────────────────────────────
 
-  private async fetch<T>(path: string): Promise<T> {
-    const url = path.startsWith("http") ? path : `${this.baseUrl}${path}`;
-    const response = await globalThis.fetch(url, {
-      headers: { Accept: "application/json" },
-    });
+  private async fetchWithRetry(url: string): Promise<Response> {
+    let lastError: Error | null = null;
 
-    if (!response.ok) {
-      throw new Error(
-        `Mirror Node request failed: ${response.status} ${response.statusText} for ${url}`
-      );
+    for (let attempt = 0; attempt <= this.retries; attempt++) {
+      try {
+        const response = await globalThis.fetch(url, {
+          headers: { Accept: "application/json" },
+          signal: AbortSignal.timeout(this.timeout),
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            `Mirror Node request failed: ${response.status} ${response.statusText} for ${url}`
+          );
+        }
+
+        return response;
+      } catch (err) {
+        lastError = err instanceof Error ? err : new Error(String(err));
+        // Don't retry on 4xx client errors
+        if (lastError.message.includes("4")) break;
+        // Wait before retrying (exponential backoff)
+        if (attempt < this.retries) {
+          await new Promise((r) => setTimeout(r, 300 * 2 ** attempt));
+        }
+      }
     }
 
+    throw lastError ?? new Error(`Mirror Node request failed for ${url}`);
+  }
+
+  private async fetch<T>(path: string): Promise<T> {
+    const url = path.startsWith("http") ? path : `${this.baseUrl}${path}`;
+    const response = await this.fetchWithRetry(url);
     return response.json() as Promise<T>;
   }
 
@@ -207,15 +241,7 @@ export class MirrorNodeClient {
     dataKey: string
   ): Promise<Paginated<T>> {
     const url = path.startsWith("http") ? path : `${this.baseUrl}${path}`;
-    const response = await globalThis.fetch(url, {
-      headers: { Accept: "application/json" },
-    });
-
-    if (!response.ok) {
-      throw new Error(
-        `Mirror Node request failed: ${response.status} ${response.statusText} for ${url}`
-      );
-    }
+    const response = await this.fetchWithRetry(url);
 
     const json = await response.json() as Record<string, unknown>;
     const data: T[] = (json[dataKey] as T[] | undefined) ?? [];

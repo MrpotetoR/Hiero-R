@@ -25,6 +25,8 @@ export type { UseTokenInfoResult } from "./useTokenInfo";
 export { useAccountInfo } from "./useAccountInfo";
 export type { UseAccountInfoResult } from "./useAccountInfo";
 
+export type { AsyncQueryOptions } from "./useAsyncQuery";
+
 export { useMirrorQuery } from "./useMirrorQuery";
 export type { UseMirrorQueryResult } from "./useMirrorQuery";
 

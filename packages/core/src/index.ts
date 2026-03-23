@@ -22,7 +22,7 @@ export type { CreateNftCollectionParams } from "./nft";
 
 // Mirror Node client
 export { MirrorNodeClient } from "./mirror";
-export type { MirrorQueryOptions } from "./mirror";
+export type { MirrorQueryOptions, MirrorClientOptions } from "./mirror";
 
 // Shared types
 export type {

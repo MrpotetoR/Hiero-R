@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
-import { Hbar } from "@hashgraph/sdk";
 import type { AccountBalance } from "@i-coders/hiero-core";
 import { useHieroContext } from "./HieroProvider";
+import { useAsyncQuery } from "./useAsyncQuery";
+import type { AsyncQueryOptions } from "./useAsyncQuery";
 
 /** Return type for the useBalance hook */
 export interface UseBalanceResult {
@@ -23,6 +23,7 @@ export interface UseBalanceResult {
  * on mount and provides loading/error states.
  *
  * @param accountId - The account ID to query (e.g., "0.0.100")
+ * @param options - Optional: enabled flag to conditionally skip the query
  * @returns Balance data with loading and error states
  *
  * @example
@@ -36,70 +37,18 @@ export interface UseBalanceResult {
  * }
  * ```
  */
-export function useBalance(accountId: string | null): UseBalanceResult {
+export function useBalance(
+  accountId: string | null,
+  options?: AsyncQueryOptions
+): UseBalanceResult {
   const { accountService } = useHieroContext();
-  const [balance, setBalance] = useState<AccountBalance | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const fetchBalance = useCallback(async () => {
-    if (!accountId) {
-      setBalance(null);
-      setError(null);
-      return;
-    }
+  const { data, loading, error, refetch } = useAsyncQuery<AccountBalance>(
+    accountId,
+    (id) => accountService.getBalance(id),
+    "Failed to fetch balance",
+    options
+  );
 
-    setLoading(true);
-    setError(null);
-
-    try {
-      const result = await accountService.getBalance(accountId);
-      setBalance(result);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to fetch balance";
-      setError(message);
-      setBalance(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [accountId, accountService]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const doFetch = async () => {
-      if (!accountId) {
-        setBalance(null);
-        setError(null);
-        return;
-      }
-
-      setLoading(true);
-      setError(null);
-
-      try {
-        const result = await accountService.getBalance(accountId);
-        if (!cancelled) {
-          setBalance(result);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          const message =
-            err instanceof Error ? err.message : "Failed to fetch balance";
-          setError(message);
-          setBalance(null);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    };
-
-    doFetch();
-    return () => { cancelled = true; };
-  }, [accountId, accountService]);
-
-  return { balance, loading, error, refetch: fetchBalance };
+  return { balance: data, loading, error, refetch };
 }

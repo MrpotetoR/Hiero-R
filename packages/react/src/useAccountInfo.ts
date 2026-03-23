@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
 import type { AccountInfo } from "@i-coders/hiero-core";
 import { useHieroContext } from "./HieroProvider";
+import { useAsyncQuery } from "./useAsyncQuery";
+import type { AsyncQueryOptions } from "./useAsyncQuery";
 
 /** Return type for the useAccountInfo hook */
 export interface UseAccountInfoResult {
@@ -21,6 +22,7 @@ export interface UseAccountInfoResult {
  * hiero-enterprise-java, but reactive with loading/error states.
  *
  * @param accountId - The account ID to query, or null to skip
+ * @param options - Optional: enabled flag to conditionally skip the query
  * @returns Account data with loading and error states
  *
  * @example
@@ -43,71 +45,17 @@ export interface UseAccountInfoResult {
  * ```
  */
 export function useAccountInfo(
-  accountId: string | null
+  accountId: string | null,
+  options?: AsyncQueryOptions
 ): UseAccountInfoResult {
   const { accountService } = useHieroContext();
-  const [account, setAccount] = useState<AccountInfo | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const fetchInfo = useCallback(async () => {
-    if (!accountId) {
-      setAccount(null);
-      setError(null);
-      return;
-    }
+  const { data, loading, error, refetch } = useAsyncQuery<AccountInfo>(
+    accountId,
+    (id) => accountService.getInfo(id),
+    "Failed to fetch account info",
+    options
+  );
 
-    setLoading(true);
-    setError(null);
-
-    try {
-      const result = await accountService.getInfo(accountId);
-      setAccount(result);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to fetch account info";
-      setError(message);
-      setAccount(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [accountId, accountService]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const doFetch = async () => {
-      if (!accountId) {
-        setAccount(null);
-        setError(null);
-        return;
-      }
-
-      setLoading(true);
-      setError(null);
-
-      try {
-        const result = await accountService.getInfo(accountId);
-        if (!cancelled) {
-          setAccount(result);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          const message =
-            err instanceof Error ? err.message : "Failed to fetch account info";
-          setError(message);
-          setAccount(null);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    };
-
-    doFetch();
-    return () => { cancelled = true; };
-  }, [accountId, accountService]);
-
-  return { account, loading, error, refetch: fetchInfo };
+  return { account: data, loading, error, refetch };
 }

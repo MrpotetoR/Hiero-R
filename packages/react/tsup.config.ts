@@ -8,5 +8,5 @@ export default defineConfig({
   clean: true,
   splitting: false,
   treeshake: true,
-  external: ["react", "@hashgraph/sdk"],
+  external: ["react", "@hashgraph/sdk", "@i-coders/hiero-core"],
 });

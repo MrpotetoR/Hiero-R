@@ -36,7 +36,7 @@ describe("MirrorNodeClient", () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         "https://testnet.mirrornode.hedera.com/api/v1/accounts/0.0.100",
-        { headers: { Accept: "application/json" } }
+        expect.objectContaining({ headers: { Accept: "application/json" } })
       );
       expect(result.account).toBe("0.0.100");
       expect(result.balance.balance).toBe(1000000000);

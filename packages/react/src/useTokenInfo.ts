@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
 import type { TokenInfo } from "@i-coders/hiero-core";
 import { useHieroContext } from "./HieroProvider";
+import { useAsyncQuery } from "./useAsyncQuery";
+import type { AsyncQueryOptions } from "./useAsyncQuery";
 
 /** Return type for the useTokenInfo hook */
 export interface UseTokenInfoResult {
@@ -21,6 +22,7 @@ export interface UseTokenInfoResult {
  * hiero-enterprise-java, but reactive with loading/error states.
  *
  * @param tokenId - The token ID to query (e.g., "0.0.456789"), or null to skip
+ * @param options - Optional: enabled flag to conditionally skip the query
  * @returns Token data with loading and error states
  *
  * @example
@@ -42,70 +44,18 @@ export interface UseTokenInfoResult {
  * }
  * ```
  */
-export function useTokenInfo(tokenId: string | null): UseTokenInfoResult {
+export function useTokenInfo(
+  tokenId: string | null,
+  options?: AsyncQueryOptions
+): UseTokenInfoResult {
   const { tokenService } = useHieroContext();
-  const [token, setToken] = useState<TokenInfo | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const fetchToken = useCallback(async () => {
-    if (!tokenId) {
-      setToken(null);
-      setError(null);
-      return;
-    }
+  const { data, loading, error, refetch } = useAsyncQuery<TokenInfo>(
+    tokenId,
+    (id) => tokenService.getInfo(id),
+    "Failed to fetch token info",
+    options
+  );
 
-    setLoading(true);
-    setError(null);
-
-    try {
-      const result = await tokenService.getInfo(tokenId);
-      setToken(result);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to fetch token info";
-      setError(message);
-      setToken(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [tokenId, tokenService]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const doFetch = async () => {
-      if (!tokenId) {
-        setToken(null);
-        setError(null);
-        return;
-      }
-
-      setLoading(true);
-      setError(null);
-
-      try {
-        const result = await tokenService.getInfo(tokenId);
-        if (!cancelled) {
-          setToken(result);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          const message =
-            err instanceof Error ? err.message : "Failed to fetch token info";
-          setError(message);
-          setToken(null);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    };
-
-    doFetch();
-    return () => { cancelled = true; };
-  }, [tokenId, tokenService]);
-
-  return { token, loading, error, refetch: fetchToken };
+  return { token: data, loading, error, refetch };
 }

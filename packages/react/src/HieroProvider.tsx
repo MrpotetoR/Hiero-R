@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo } from "react";
+import React, { createContext, useContext, useMemo, useRef } from "react";
 import { Client } from "@hashgraph/sdk";
 import {
   createHieroClient,
@@ -68,9 +68,16 @@ export interface HieroProviderProps {
  * ```
  */
 export function HieroProvider({ config, children }: HieroProviderProps) {
+  // Stabilize config reference to prevent infinite re-renders
+  // when config is passed as an inline object literal
+  const { network, operatorId, operatorKey } = config;
+  const configRef = useRef(config);
+  configRef.current = config;
+
   const value = useMemo<HieroContextValue>(() => {
-    const client = createHieroClient(config);
-    const mirrorUrl = getMirrorUrl(config.network);
+    const stableConfig = { network, operatorId, operatorKey };
+    const client = createHieroClient(stableConfig);
+    const mirrorUrl = getMirrorUrl(network);
 
     return {
       client,
@@ -78,9 +85,9 @@ export function HieroProvider({ config, children }: HieroProviderProps) {
       tokenService: new TokenService(client),
       nftService: new NftService(client),
       mirrorClient: new MirrorNodeClient(mirrorUrl),
-      config,
+      config: stableConfig,
     };
-  }, [config.network, config.operatorId, config.operatorKey]);
+  }, [network, operatorId, operatorKey]);
 
   return (
     <HieroContext.Provider value={value}>{children}</HieroContext.Provider>
