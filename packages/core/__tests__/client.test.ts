@@ -31,7 +31,7 @@ describe("createHieroClient", () => {
       operatorKey: "302e020100300506032b6570042204200000",
     });
 
-    expect(vi.mocked(Client.forTestnet)).toHaveBeenCalled();
+    expect(Client.forTestnet).toHaveBeenCalled();
     expect(client.setOperator).toHaveBeenCalled();
   });
 
@@ -42,7 +42,7 @@ describe("createHieroClient", () => {
       operatorKey: "302e020100300506032b6570042204200000",
     });
 
-    expect(vi.mocked(Client.forMainnet)).toHaveBeenCalled();
+    expect(Client.forMainnet).toHaveBeenCalled();
   });
 
   it("should create a previewnet client", () => {
@@ -52,7 +52,7 @@ describe("createHieroClient", () => {
       operatorKey: "302e020100300506032b6570042204200000",
     });
 
-    expect(vi.mocked(Client.forPreviewnet)).toHaveBeenCalled();
+    expect(Client.forPreviewnet).toHaveBeenCalled();
   });
 
   it("should throw for unsupported network", () => {

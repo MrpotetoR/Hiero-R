@@ -98,8 +98,43 @@ export function useMirrorQuery<T>(
   }, [path, dataKey, enabled, mirrorClient]);
 
   useEffect(() => {
-    fetchInitial();
-  }, [fetchInitial]);
+    let cancelled = false;
+
+    const doFetch = async () => {
+      if (!path || !enabled) {
+        setData([]);
+        setError(null);
+        setCurrentPage(null);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const page = await mirrorClient.queryPaginated<T>(path, dataKey);
+        if (!cancelled) {
+          setData(page.data);
+          setCurrentPage(page);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          const message =
+            err instanceof Error ? err.message : "Mirror Node query failed";
+          setError(message);
+          setData([]);
+          setCurrentPage(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    doFetch();
+    return () => { cancelled = true; };
+  }, [path, dataKey, enabled, mirrorClient]);
 
   const fetchNextPage = useCallback(async () => {
     if (!currentPage?.nextLink) return;

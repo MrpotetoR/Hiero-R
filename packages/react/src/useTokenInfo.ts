@@ -72,8 +72,40 @@ export function useTokenInfo(tokenId: string | null): UseTokenInfoResult {
   }, [tokenId, tokenService]);
 
   useEffect(() => {
-    fetchToken();
-  }, [fetchToken]);
+    let cancelled = false;
+
+    const doFetch = async () => {
+      if (!tokenId) {
+        setToken(null);
+        setError(null);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const result = await tokenService.getInfo(tokenId);
+        if (!cancelled) {
+          setToken(result);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          const message =
+            err instanceof Error ? err.message : "Failed to fetch token info";
+          setError(message);
+          setToken(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    doFetch();
+    return () => { cancelled = true; };
+  }, [tokenId, tokenService]);
 
   return { token, loading, error, refetch: fetchToken };
 }

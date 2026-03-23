@@ -66,8 +66,40 @@ export function useBalance(accountId: string | null): UseBalanceResult {
   }, [accountId, accountService]);
 
   useEffect(() => {
-    fetchBalance();
-  }, [fetchBalance]);
+    let cancelled = false;
+
+    const doFetch = async () => {
+      if (!accountId) {
+        setBalance(null);
+        setError(null);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const result = await accountService.getBalance(accountId);
+        if (!cancelled) {
+          setBalance(result);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          const message =
+            err instanceof Error ? err.message : "Failed to fetch balance";
+          setError(message);
+          setBalance(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    doFetch();
+    return () => { cancelled = true; };
+  }, [accountId, accountService]);
 
   return { balance, loading, error, refetch: fetchBalance };
 }

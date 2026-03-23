@@ -74,8 +74,40 @@ export function useAccountInfo(
   }, [accountId, accountService]);
 
   useEffect(() => {
-    fetchInfo();
-  }, [fetchInfo]);
+    let cancelled = false;
+
+    const doFetch = async () => {
+      if (!accountId) {
+        setAccount(null);
+        setError(null);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const result = await accountService.getInfo(accountId);
+        if (!cancelled) {
+          setAccount(result);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          const message =
+            err instanceof Error ? err.message : "Failed to fetch account info";
+          setError(message);
+          setAccount(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    doFetch();
+    return () => { cancelled = true; };
+  }, [accountId, accountService]);
 
   return { account, loading, error, refetch: fetchInfo };
 }
