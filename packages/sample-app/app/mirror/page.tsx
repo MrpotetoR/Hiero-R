@@ -6,23 +6,31 @@ import type { MirrorTransaction } from "@i-coders/hiero-react";
 import { Nav } from "@/components/Nav";
 import { Card, CodeBlock } from "@/components/Card";
 
+const ACCOUNT_ID_REGEX = /^0\.0\.\d+$/;
+
 export default function MirrorPage() {
   const [accountId, setAccountId] = useState("0.0.100");
   const [queryId, setQueryId] = useState("0.0.100");
 
+  const isValidAccountId = ACCOUNT_ID_REGEX.test(accountId);
+
   const { data: transactions, loading, error, hasNextPage, fetchNextPage } =
     useMirrorQuery<MirrorTransaction>(
-      `/api/v1/transactions?account.id=${queryId}&limit=10&order=desc`,
+      queryId ? `/api/v1/transactions?account.id=${queryId}&limit=10&order=desc` : null,
       "transactions"
     );
 
   const handleSearch = () => {
+    if (!isValidAccountId) return;
     setQueryId(accountId);
   };
 
   const formatTimestamp = (ts: string) => {
+    if (!ts) return "—";
     const [seconds] = ts.split(".");
-    return new Date(parseInt(seconds) * 1000).toLocaleString();
+    const parsed = parseInt(seconds);
+    if (isNaN(parsed)) return "—";
+    return new Date(parsed * 1000).toLocaleString();
   };
 
   const tinybarToHbar = (amount: number) => {
@@ -52,12 +60,16 @@ export default function MirrorPage() {
             />
             <button
               onClick={handleSearch}
-              disabled={loading}
+              disabled={loading || !isValidAccountId}
               className="px-4 py-2 bg-hiero-400 text-white rounded-lg text-sm font-medium hover:bg-hiero-600 disabled:opacity-50 transition-colors"
             >
               {loading ? "Loading..." : "Search"}
             </button>
           </div>
+
+          {accountId && !isValidAccountId && (
+            <p className="text-red-500 text-xs mb-3">Invalid Account ID format. Use 0.0.XXXXX</p>
+          )}
 
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">

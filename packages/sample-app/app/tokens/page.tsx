@@ -6,17 +6,22 @@ import type { MirrorTokenBalance } from "@i-coders/hiero-react";
 import { Nav } from "@/components/Nav";
 import { Card, CodeBlock } from "@/components/Card";
 
+const ACCOUNT_ID_REGEX = /^0\.0\.\d+$/;
+
 export default function TokensPage() {
   const [accountId, setAccountId] = useState("0.0.100");
   const [queryId, setQueryId] = useState("0.0.100");
 
+  const isValidAccountId = ACCOUNT_ID_REGEX.test(accountId);
+
   const { data: tokens, loading, error, hasNextPage, fetchNextPage, refetch } =
     useMirrorQuery<MirrorTokenBalance>(
-      `/api/v1/accounts/${queryId}/tokens`,
+      queryId ? `/api/v1/accounts/${queryId}/tokens` : null,
       "tokens"
     );
 
   const handleSearch = () => {
+    if (!isValidAccountId) return;
     setQueryId(accountId);
   };
 
@@ -43,12 +48,16 @@ export default function TokensPage() {
             />
             <button
               onClick={handleSearch}
-              disabled={loading}
+              disabled={loading || !isValidAccountId}
               className="px-4 py-2 bg-hiero-400 text-white rounded-lg text-sm font-medium hover:bg-hiero-600 disabled:opacity-50 transition-colors"
             >
               {loading ? "Loading..." : "Search"}
             </button>
           </div>
+
+          {accountId && !isValidAccountId && (
+            <p className="text-red-500 text-xs mb-3">Invalid Account ID format. Use 0.0.XXXXX</p>
+          )}
 
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">

@@ -6,14 +6,27 @@ import { useTransfer } from "@i-coders/hiero-react";
 import { Nav } from "@/components/Nav";
 import { Card, StatusBadge, CodeBlock } from "@/components/Card";
 
+const ACCOUNT_ID_REGEX = /^0\.0\.\d+$/;
+
 export default function TransferPage() {
   const [toAccount, setToAccount] = useState("");
   const [amount, setAmount] = useState("1");
+  const [showConfirm, setShowConfirm] = useState(false);
   const { send, status, error, reset } = useTransfer();
 
+  const isValidAccountId = ACCOUNT_ID_REGEX.test(toAccount);
+  const parsedAmount = parseFloat(amount);
+  const isValidAmount = !isNaN(parsedAmount) && parsedAmount > 0;
+  const canSend = isValidAccountId && isValidAmount && status !== "pending";
+
   const handleTransfer = async () => {
-    if (!toAccount || !amount) return;
-    const hbarAmount = new Hbar(parseFloat(amount));
+    if (!canSend) return;
+    setShowConfirm(true);
+  };
+
+  const confirmTransfer = async () => {
+    setShowConfirm(false);
+    const hbarAmount = new Hbar(parsedAmount);
     await send(toAccount, hbarAmount);
   };
 
@@ -40,8 +53,13 @@ export default function TransferPage() {
                 value={toAccount}
                 onChange={(e) => setToAccount(e.target.value)}
                 placeholder="0.0.67890"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-hiero-400 focus:border-transparent"
+                className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-hiero-400 focus:border-transparent ${
+                  toAccount && !isValidAccountId ? "border-red-300" : "border-gray-300"
+                }`}
               />
+              {toAccount && !isValidAccountId && (
+                <p className="text-red-500 text-xs mt-1">Invalid format. Use 0.0.XXXXX</p>
+              )}
             </div>
 
             <div>
@@ -55,14 +73,19 @@ export default function TransferPage() {
                 placeholder="1"
                 min="0"
                 step="0.01"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-hiero-400 focus:border-transparent"
+                className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-hiero-400 focus:border-transparent ${
+                  amount && !isValidAmount ? "border-red-300" : "border-gray-300"
+                }`}
               />
+              {amount && !isValidAmount && (
+                <p className="text-red-500 text-xs mt-1">Enter a positive number</p>
+              )}
             </div>
 
             <div className="flex items-center gap-3">
               <button
                 onClick={handleTransfer}
-                disabled={status === "pending" || !toAccount || !amount}
+                disabled={!canSend}
                 className="px-6 py-2.5 bg-hiero-400 text-white rounded-lg text-sm font-medium hover:bg-hiero-600 disabled:opacity-50 transition-colors"
               >
                 {status === "pending" ? "Sending..." : "Send HBAR"}
@@ -93,6 +116,31 @@ export default function TransferPage() {
             )}
           </div>
         </Card>
+
+        {showConfirm && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl p-6 max-w-sm w-full mx-4 shadow-xl">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Confirm transfer</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Send <strong>{amount} HBAR</strong> to <strong className="font-mono">{toAccount}</strong>?
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowConfirm(false)}
+                  className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmTransfer}
+                  className="px-4 py-2 bg-hiero-400 text-white rounded-lg text-sm font-medium hover:bg-hiero-600"
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <Card title="Code example">
           <CodeBlock

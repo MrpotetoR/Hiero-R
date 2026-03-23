@@ -15,6 +15,11 @@ export function Nav() {
 
   return (
     <header className="border-b border-gray-200 bg-white">
+      <div className="bg-amber-50 border-b border-amber-200 px-4 py-1.5 text-center">
+        <span className="text-xs font-medium text-amber-800">
+          Demo — Testnet only — Do not use real credentials
+        </span>
+      </div>
       <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-hiero-400 flex items-center justify-center">
