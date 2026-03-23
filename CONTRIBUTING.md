@@ -12,7 +12,7 @@ Thank you for your interest in contributing! This project follows the contributi
    ```
 3. **Add upstream remote:**
    ```bash
-   git remote add upstream https://github.com/i-coders-uttecam/hiero-enterprise-react.git
+   git remote add upstream https://github.com/MrpotetoR/Hiero-R.git
    ```
 4. **Install dependencies:**
    ```bash
@@ -115,7 +115,7 @@ refactor: simplify HieroProvider context
 
 ```
 packages/
-├── core/       # Base services (HieroClient, AccountService, MirrorNodeClient)
+├── core/       # Base services (AccountService, TokenService, NftService, FileService, SmartContractService, MirrorNodeClient)
 ├── react/      # React hooks and HieroProvider
 └── sample-app/ # Next.js demo application
 ```
